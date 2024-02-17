@@ -55,7 +55,7 @@ class AuthController extends Controller
                 'password' => 'required|string|min:6',
             ]);
 
-            if($valitator->fails()) {
+            if ($valitator->fails()) {
                 return response()->json(['message' => 'email já cadastrado.'], 400);
             }
 
@@ -64,34 +64,39 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Usuário cadastrado com sucesso.',
                 'user' => $user,
-                'status' => 201
-            ]);
+            ], 201);
         } catch (\Throwable $th) {
-            throw $th;
+            return response()->json(['message' => $th->getMessage()], 500);
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function refresh(Request $request)
     {
-        //
+        try {
+            $user = Auth::user();
+            $newToken = $user->accessToken->refresh();
+
+            return response()->json([
+                'user' => $user,
+                'authorization' => [
+                    'token' => $newToken,
+                    'type' => 'bearer',
+                ]
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 500);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function logout()
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        try {
+            Auth::logout();
+            return response()->json([
+                'message' => 'Successfully logged out',
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 500);
+        }
     }
 }
