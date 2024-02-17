@@ -17,7 +17,7 @@ class UserService
                 'password' => Hash::make($request->password),
             ]);
 
-            return response()->json(['message' => 'Usuário criado com sucesso'], 201);
+            return $user;
         } catch (\Throwable $th) {
             throw $th;
         }
