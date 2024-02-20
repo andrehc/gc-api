@@ -15,8 +15,14 @@ use App\Http\Controllers\Api\UserController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware('api')->group(function () {
+    Route::controller(UserController::class)->group(function () {
+        Route::get('/users', 'index');
+        Route::get('/users/{user_id}', 'show');
+        Route::put('/users/{user_id}', 'update');
+        Route::delete('/users/{user_id}', 'delete');
+    });
+    // Route::get('/user', [AuthController::class, 'user']);
 });
 
 Route::controller(AuthController::class)->group(function () {

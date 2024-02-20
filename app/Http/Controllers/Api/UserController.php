@@ -2,17 +2,26 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Services\UserService;
+use App\Http\Controllers\Controller;
+use App\Traits\ValidatesRequestsTrait;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use ValidatesRequestsTrait;
+    protected $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
     public function index()
     {
-        //
+        $users = $this->userService->index();
+        return response()->json([
+            'message' => $users
+        ], 200);
     }
 
     /**
@@ -26,17 +35,49 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $userId)
     {
-        //
+        try {
+            $user = $this->userService->getUser($userId);
+
+            return response()->json([
+                'message' => $user
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => $th->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $userId)
     {
-        //
+        try {
+            $rules = [
+                'admin' => 'string',
+                'email' => 'email|unique:users,email,' . $userId,
+                'name' => 'string',
+            ];
+
+            $validator = $this->validateData($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return $this->respondWithValidationErrors($validator);
+            }
+
+            $user = $this->userService->updateUser($request, $userId);
+
+            return response()->json([
+                'message' => $user
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => $th->getMessage(),
+            ], 500);
+        }
     }
 
     /**
